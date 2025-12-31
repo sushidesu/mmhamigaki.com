@@ -41,9 +41,8 @@ const cacheAPIConfigs: CacheAPIConfig[] = [
 
 export function cacheMiddleware() {
   return async (c: Context, next: Next) => {
-    // 開発環境ではスキップ
-    const isDev = c.env.ENVIRONMENT === "development";
-    console.log({ isDev });
+    // 常にスキップ
+    const isDev = true;
     if (isDev) {
       return await next();
     }
