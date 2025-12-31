@@ -3,6 +3,9 @@
   "name": "mmhamigaki-com",
   "main": "src/index.ts",
   "compatibility_date": "2025-12-31",
+  "vars": {
+    "ENVIRONMENT": "production"
+  },
   "kv_namespaces": [
     {
       "binding": "CACHE_KV",

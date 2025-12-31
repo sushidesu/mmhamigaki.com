@@ -63,33 +63,16 @@ function escapeXml(text: string): string {
 
 ogImage.get('/:slug', async (c) => {
   const slug = c.req.param('slug')
-  const cacheKey = `og:${slug}`
 
-  const cache = caches.default
-  const request = new Request(`https://cache/${cacheKey}`)
-  const cached = await cache.match(request)
-
-  if (cached) {
-    return cached
+  const object = await c.env.CONTENT_BUCKET.get(`posts/${slug}.md`)
+  if (!object) {
+    return c.notFound()
   }
 
-  const metadataKey = `metadata:${slug}`
-  let metadata = await c.env.CACHE_KV.get(metadataKey)
+  const content = await object.text()
+  const parsed = await parseMarkdown(content)
+  const { title, description } = parsed.metadata
 
-  if (!metadata) {
-    const object = await c.env.CONTENT_BUCKET.get(`posts/${slug}.md`)
-    if (!object) {
-      return c.notFound()
-    }
-
-    const content = await object.text()
-    const parsed = await parseMarkdown(content)
-    metadata = JSON.stringify(parsed.metadata)
-
-    await c.env.CACHE_KV.put(metadataKey, metadata, { expirationTtl: 86400 })
-  }
-
-  const { title, description } = JSON.parse(metadata)
   const svg = generateOGImageSVG(title, description || '')
 
   const response = new Response(svg, {
@@ -98,8 +81,6 @@ ogImage.get('/:slug', async (c) => {
       'Cache-Control': 'public, max-age=86400',
     },
   })
-
-  c.executionCtx.waitUntil(cache.put(request, response.clone()))
 
   return response
 })

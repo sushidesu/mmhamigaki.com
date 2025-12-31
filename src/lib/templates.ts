@@ -1,17 +1,33 @@
 import { html } from 'hono/html'
 import type { PostMetadata } from '../types/post'
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 export function renderPostPage(metadata: PostMetadata, content: string): string {
-  return html`<!DOCTYPE html>
+  const tagsHtml =
+    metadata.tags.length > 0
+      ? `<div class="tags">
+              ${metadata.tags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
+            </div>`
+      : ''
+
+  return `<!DOCTYPE html>
     <html lang="en">
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${metadata.title}</title>
-        <meta name="description" content="${metadata.description}">
-        <meta property="og:title" content="${metadata.title}">
-        <meta property="og:description" content="${metadata.description}">
-        <meta property="og:image" content="/og-image/${metadata.slug}">
+        <title>${escapeHtml(metadata.title)}</title>
+        <meta name="description" content="${escapeHtml(metadata.description)}">
+        <meta property="og:title" content="${escapeHtml(metadata.title)}">
+        <meta property="og:description" content="${escapeHtml(metadata.description)}">
+        <meta property="og:image" content="/og-image/${escapeHtml(metadata.slug)}">
         <meta property="og:type" content="article">
         <style>
           body {
@@ -49,20 +65,16 @@ export function renderPostPage(metadata: PostMetadata, content: string): string 
           <a href="/">← Home</a>
         </nav>
         <article>
-          <h1>${metadata.title}</h1>
-          <time datetime="${metadata.date}">${metadata.date}</time>
-          ${metadata.tags.length > 0 ? html`
-            <div class="tags">
-              ${metadata.tags.map(tag => html`<span class="tag">${tag}</span>`)}
-            </div>
-          ` : ''}
+          <h1>${escapeHtml(metadata.title)}</h1>
+          <time datetime="${escapeHtml(metadata.date)}">${escapeHtml(metadata.date)}</time>
+          ${tagsHtml}
           <div class="content">
             ${content}
           </div>
         </article>
       </body>
     </html>
-  `.toString()
+  `
 }
 
 export function renderHomepage(posts: { title: string; slug: string; date: string; description: string }[]): string {
