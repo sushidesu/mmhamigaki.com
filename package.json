@@ -4,7 +4,11 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
-    "cf-typegen": "wrangler types --env-interface CloudflareBindings"
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt --check",
+    "format:fix": "oxfmt"
   },
   "dependencies": {
     "@cloudflare/workers-types": "^4.20251231.0",
@@ -13,6 +17,8 @@
     "marked": "^17.0.1"
   },
   "devDependencies": {
+    "oxfmt": "^0.21.0",
+    "oxlint": "^1.36.0",
     "wrangler": "^4.4.0"
   }
 }
