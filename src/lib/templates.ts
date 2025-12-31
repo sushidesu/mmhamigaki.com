@@ -1,22 +1,22 @@
-import { html } from 'hono/html'
-import type { PostMetadata } from '../types/post'
+import { html } from "hono/html";
+import type { PostMetadata } from "../types/post";
 
 function escapeHtml(text: string): string {
   return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 export function renderPostPage(metadata: PostMetadata, content: string): string {
   const tagsHtml =
     metadata.tags.length > 0
       ? `<div class="tags">
-              ${metadata.tags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
+              ${metadata.tags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}
             </div>`
-      : ''
+      : "";
 
   return `<!DOCTYPE html>
     <html lang="en">
@@ -74,10 +74,12 @@ export function renderPostPage(metadata: PostMetadata, content: string): string 
         </article>
       </body>
     </html>
-  `
+  `;
 }
 
-export function renderHomepage(posts: { title: string; slug: string; date: string; description: string }[]): string {
+export function renderHomepage(
+  posts: { title: string; slug: string; date: string; description: string }[],
+): string {
   return html`<!DOCTYPE html>
     <html lang="en">
       <head>
@@ -128,15 +130,17 @@ export function renderHomepage(posts: { title: string; slug: string; date: strin
       <body>
         <h1>mmhamigaki.com</h1>
         <ul class="posts">
-          ${posts.map(post => html`
+          ${posts.map(
+            (post) => html`
             <li class="post">
               <h2><a href="/posts/${post.slug}">${post.title}</a></h2>
               <time datetime="${post.date}">${post.date}</time>
               <p>${post.description}</p>
             </li>
-          `)}
+          `,
+          )}
         </ul>
       </body>
     </html>
-  `.toString()
+  `.toString();
 }

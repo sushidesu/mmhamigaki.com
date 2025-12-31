@@ -86,34 +86,40 @@ npm run deploy
 ## Route Overview
 
 ### `/` - Homepage
+
 - Lists recent blog posts
 - Cached for 1 hour
 - Shows titles, dates, and descriptions
 
 ### `/posts/:slug` - Blog Posts
+
 - Fetches markdown from R2
 - Parses frontmatter and renders HTML
 - 3-tier caching (Cache API → KV → R2)
 - Cache TTL: 1 hour
 
 ### `/og-image/:slug` - OG Images
+
 - Generates SVG OG images dynamically
 - Based on post title and description
 - Cache TTL: 24 hours
 - Size: 1200x630px
 
 ### `/images/*` - Image Serving
+
 - Serves from MEDIA_BUCKET R2
 - Supports: JPG, PNG, GIF, WebP, SVG
 - Cache TTL: 1 year (immutable)
 
 ### `/audio/*` - Audio Serving
+
 - Serves from MEDIA_BUCKET R2
 - Supports: MP3, WAV, OGG, M4A
 - Cache TTL: 24 hours
 - Supports range requests
 
 ### `/api` - Cap'n Web RPC
+
 - Methods:
   - `getPosts()` - Get all post slugs
   - `getPost(slug)` - Get post metadata
@@ -178,15 +184,19 @@ const fullPost = await api.getPostWithContent('welcome')
 ## Troubleshooting
 
 ### KV namespace not found
+
 Make sure you've created the KV namespace and updated the IDs in `wrangler.jsonc`.
 
 ### R2 bucket not found
+
 Run `wrangler r2 bucket list` to verify your buckets exist.
 
 ### Type errors
+
 Run `npm run cf-typegen` to regenerate TypeScript bindings after changing `wrangler.jsonc`.
 
 ### Posts not showing
+
 - Verify markdown file is uploaded to R2
 - Check `published: true` in frontmatter
 - Clear cache: delete KV keys or wait for TTL expiration

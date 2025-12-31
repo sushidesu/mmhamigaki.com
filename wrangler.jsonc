@@ -4,25 +4,25 @@
   "main": "src/index.ts",
   "compatibility_date": "2025-12-31",
   "vars": {
-    "ENVIRONMENT": "production"
+    "ENVIRONMENT": "production",
   },
   "kv_namespaces": [
     {
       "binding": "CACHE_KV",
       "id": "placeholder_id_to_be_created",
-      "preview_id": "placeholder_preview_id"
-    }
+      "preview_id": "placeholder_preview_id",
+    },
   ],
   "r2_buckets": [
     {
       "binding": "CONTENT_BUCKET",
       "bucket_name": "mmhamigaki-content",
-      "preview_bucket_name": "mmhamigaki-content-preview"
+      "preview_bucket_name": "mmhamigaki-content-preview",
     },
     {
       "binding": "MEDIA_BUCKET",
       "bucket_name": "mmhamigaki-media",
-      "preview_bucket_name": "mmhamigaki-media-preview"
-    }
-  ]
+      "preview_bucket_name": "mmhamigaki-media-preview",
+    },
+  ],
 }

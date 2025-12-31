@@ -25,12 +25,14 @@ npm run cf-typegen
 ## Architecture
 
 ### Tech Stack
+
 - **Runtime**: Cloudflare Workers (edge computing platform)
 - **Framework**: Hono v4 - lightweight web framework optimized for edge environments
 - **Build Tool**: Wrangler - Cloudflare's CLI for Workers development
 - **Language**: TypeScript with strict mode enabled
 
 ### Project Structure
+
 - `src/index.ts` - Main application entry point, exports the Hono app instance
 - `package.json` - Defines npm scripts and dependencies
 - `tsconfig.json` - TypeScript configuration with ESNext target and Hono JSX support
