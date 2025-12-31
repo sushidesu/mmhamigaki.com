@@ -31,3 +31,7 @@ lerna-debug.log*
 
 # misc
 .DS_Store
+
+# generated
+src/styles/output.css
+src/lib/styles.ts

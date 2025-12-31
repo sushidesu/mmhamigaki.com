@@ -4,7 +4,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Cloudflare Workers application built with Hono, a lightweight web framework. The application is deployed to Cloudflare's edge network and uses Wrangler for development and deployment.
+This is a personal content platform and portfolio site built as a Cloudflare Workers application using Hono. It serves various types of content including text posts, images, and audio, all delivered from the edge.
+
+## Development Principles
+
+**Lightweight & Edge-Optimized**
+
+- Keep dependencies minimal and the application lean
+- Simple doesn't mean easy - it means avoiding unnecessary complexity
+- All code must be optimized for Cloudflare Workers edge runtime
+
+**Performance-First**
+
+- Performance is critical for a content platform
+- Base implementation on SSR for optimal delivery
+- Support dynamic interactions where needed
+
+**Cap'n Web for APIs**
+
+- This project is a testing ground for Cap'n Web RPC
+- All APIs must be implemented using Cap'n Web
+- Cap'n Web is new technology - always consult official documentation for correct implementation
 
 ## Development Commands
 
@@ -12,8 +32,14 @@ This is a Cloudflare Workers application built with Hono, a lightweight web fram
 # Install dependencies
 npm install
 
-# Start local development server with Wrangler
+# Start local development server with Wrangler (includes CSS build)
 npm run dev
+
+# TypeScript type checking (run before committing)
+npm run typecheck
+
+# Build Tailwind CSS
+npm run css:build
 
 # Deploy to Cloudflare Workers
 npm run deploy
@@ -28,6 +54,8 @@ npm run cf-typegen
 
 - **Runtime**: Cloudflare Workers (edge computing platform)
 - **Framework**: Hono v4 - lightweight web framework optimized for edge environments
+- **UI**: Hono JSX - server-side JSX rendering without React
+- **Styling**: Tailwind CSS v4 - utility-first CSS with build-time generation
 - **Build Tool**: Wrangler - Cloudflare's CLI for Workers development
 - **Language**: TypeScript with strict mode enabled
 

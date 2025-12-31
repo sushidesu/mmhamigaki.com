@@ -2,8 +2,12 @@
   "name": "mmhamigaki.com",
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
+    "css:build": "tailwindcss -i ./src/styles/input.css -o ./src/styles/output.css --minify && node scripts/embed-css.js",
+    "css:watch": "tailwindcss -i ./src/styles/input.css -o ./src/styles/output.css --watch",
+    "dev": "npm run css:build && (npm run css:watch & wrangler dev)",
+    "predeploy": "npm run css:build",
     "deploy": "wrangler deploy --minify",
+    "typecheck": "tsc --noEmit",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
@@ -12,13 +16,17 @@
   },
   "dependencies": {
     "@cloudflare/workers-types": "^4.20251231.0",
+    "@tailwindcss/cli": "^4.1.18",
     "capnweb": "^0.4.0",
     "hono": "^4.11.3",
     "marked": "^17.0.1"
   },
   "devDependencies": {
+    "@tailwindcss/typography": "^0.5.19",
     "oxfmt": "^0.21.0",
     "oxlint": "^1.36.0",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3",
     "wrangler": "^4.4.0"
   }
 }

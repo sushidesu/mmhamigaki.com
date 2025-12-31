@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --color-text-muted: #666;
+  --color-text-body: #333;
+  --color-link-blue: #0066cc;
+  --color-tag-bg: #f0f0f0;
+}
