@@ -1,5 +1,13 @@
 {
   "permissions": {
-    "allow": ["Bash(npm install:*)", "Bash(npm run typecheck:*)"]
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm run typecheck:*)",
+      "WebSearch",
+      "WebFetch(domain:vite.dev)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(npm run build:*)"
+    ]
   }
 }

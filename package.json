@@ -2,11 +2,10 @@
   "name": "mmhamigaki.com",
   "type": "module",
   "scripts": {
-    "css:build": "tailwindcss -i ./src/styles/input.css -o ./src/styles/output.css --minify && node scripts/embed-css.js",
-    "css:watch": "tailwindcss -i ./src/styles/input.css -o ./src/styles/output.css --watch",
-    "dev": "npm run css:build && (npm run css:watch & wrangler dev)",
-    "predeploy": "npm run css:build",
-    "deploy": "wrangler deploy --minify",
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
     "typecheck": "tsc --noEmit",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "lint": "oxlint",
@@ -16,17 +15,20 @@
   },
   "dependencies": {
     "@cloudflare/workers-types": "^4.20251231.0",
-    "@tailwindcss/cli": "^4.1.18",
     "capnweb": "^0.4.0",
     "hono": "^4.11.3",
     "marked": "^17.0.1"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.17.1",
+    "@hono/vite-dev-server": "^0.24.0",
     "@tailwindcss/typography": "^0.5.19",
+    "@tailwindcss/vite": "^4.1.18",
     "oxfmt": "^0.21.0",
     "oxlint": "^1.36.0",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
+    "vite": "^7.3.0",
     "wrangler": "^4.4.0"
   }
 }

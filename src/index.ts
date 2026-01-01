@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import "./styles/input.css";
 import { cacheMiddleware } from "./middleware/cache";
 import homepage from "./routes/homepage";
 import posts from "./routes/posts";
