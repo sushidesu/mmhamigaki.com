@@ -1,12 +1,6 @@
-import { Hono } from "hono";
-import { parseMarkdown } from "../lib/markdown";
-
-const ogImage = new Hono<{
-  Bindings: {
-    CONTENT_BUCKET: R2Bucket;
-    CACHE_KV: KVNamespace;
-  };
-}>();
+import { createRoute } from "honox/factory";
+import type { Context } from "hono";
+import { parseMarkdown } from "../../lib/markdown";
 
 function generateOGImageSVG(title: string, description: string): string {
   const titleLines = wrapText(title, 35);
@@ -64,8 +58,8 @@ function escapeXml(text: string): string {
     .replace(/'/g, "&apos;");
 }
 
-ogImage.get("/:slug", async (c) => {
-  const slug = c.req.param("slug");
+export default createRoute(async (c: Context<{ Bindings: CloudflareBindings }>) => {
+  const slug = c.req.param("slug")!;
 
   const object = await c.env.CONTENT_BUCKET.get(`posts/${slug}.md`);
   if (!object) {
@@ -87,5 +81,3 @@ ogImage.get("/:slug", async (c) => {
 
   return response;
 });
-
-export default ogImage;

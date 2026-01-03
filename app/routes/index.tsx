@@ -1,22 +1,16 @@
-import { Hono } from "hono";
+import { createRoute } from "honox/factory";
+import type { Context } from "hono";
 import { parseMarkdown } from "../lib/markdown";
 import { renderHomepage } from "../lib/templates";
 
-const homepage = new Hono<{
-  Bindings: {
-    CONTENT_BUCKET: R2Bucket;
-    CACHE_KV: KVNamespace;
-  };
-}>();
-
-homepage.get("/", async (c) => {
+export default createRoute(async (c: Context<{ Bindings: CloudflareBindings }>) => {
   const list = await c.env.CONTENT_BUCKET.list({
     prefix: "posts/",
     limit: 20,
   });
 
   const posts = await Promise.all(
-    list.objects.map(async (obj) => {
+    list.objects.map(async (obj: R2Object) => {
       const slug = obj.key.replace("posts/", "").replace(".md", "");
       const object = await c.env.CONTENT_BUCKET.get(obj.key);
       if (!object) return null;
@@ -29,8 +23,8 @@ homepage.get("/", async (c) => {
   );
 
   const publishedPosts = posts
-    .filter((p) => p && p.published)
-    .sort((a, b) => new Date(b!.date).getTime() - new Date(a!.date).getTime())
+    .filter((p): p is NonNullable<typeof p> => p !== null && (p as any).published)
+    .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 10);
 
   const html = renderHomepage(publishedPosts as any);
@@ -42,5 +36,3 @@ homepage.get("/", async (c) => {
     },
   });
 });
-
-export default homepage;

@@ -1,11 +1,12 @@
 import { Hono } from "hono";
 import { RpcTarget } from "capnweb";
-import { parseMarkdown } from "../lib/markdown";
-import type { PostMetadata } from "../types/post";
+import { parseMarkdown } from "../../lib/markdown";
+import type { PostMetadata } from "../../types/post";
 
 interface Env {
   CONTENT_BUCKET: R2Bucket;
   CACHE_KV: KVNamespace;
+  DB: D1Database;
 }
 
 class BlogApiServer extends RpcTarget {

@@ -8,7 +8,7 @@ export async function getCachedResponse(
   kvNamespace?: KVNamespace,
   kvKey?: string,
 ): Promise<Response | null> {
-  const cache = caches.default;
+  const cache = (caches as any).default;
   const request = new Request(`https://cache/${cacheKey}`);
 
   const cachedResponse = await cache.match(request);
@@ -37,14 +37,14 @@ export async function setCachedResponse(
   kvNamespace?: KVNamespace,
   kvKey?: string,
 ): Promise<void> {
-  const cache = caches.default;
+  const cache = (caches as any).default;
   const request = new Request(`https://cache/${cacheKey}`);
 
   const cacheControl = options.cacheControl || `public, max-age=${options.ttl || 3600}`;
   const clonedResponse = new Response(response.body, {
     ...response,
     headers: {
-      ...Object.fromEntries(response.headers.entries()),
+      ...Object.fromEntries((response.headers as any).entries()),
       "Cache-Control": cacheControl,
     },
   });

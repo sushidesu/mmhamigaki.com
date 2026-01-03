@@ -2,9 +2,9 @@
   "name": "mmhamigaki.com",
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
-    "preview": "wrangler dev",
+    "dev": "vite",
+    "build": "vite build --mode client && vite build",
+    "preview": "wrangler dev --local",
     "deploy": "npm run build && wrangler deploy",
     "typecheck": "tsc --noEmit",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
@@ -17,10 +17,12 @@
     "@cloudflare/workers-types": "^4.20251231.0",
     "capnweb": "^0.4.0",
     "hono": "^4.11.3",
+    "honox": "^0.1.52",
     "marked": "^17.0.1"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.17.1",
+    "@hono/vite-build": "^1.8.0",
     "@hono/vite-dev-server": "^0.24.0",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.18",

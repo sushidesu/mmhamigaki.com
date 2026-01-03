@@ -69,7 +69,7 @@ export function cacheMiddleware() {
       const parts = pathname.split("/").filter(Boolean);
       const slug = parts[parts.length - 1] || "index";
       const cacheKey = `${cacheAPIConfig.keyPrefix}${slug}`;
-      const cache = caches.default;
+      const cache = (caches as any).default;
       const request = new Request(`https://cache/${cacheKey}`);
       const cached = await cache.match(request);
       if (cached) {
@@ -106,7 +106,7 @@ export function cacheMiddleware() {
       const cacheKey = `${cacheAPIConfig.keyPrefix}${slug}`;
       c.executionCtx.waitUntil(
         (async () => {
-          const cache = caches.default;
+          const cache = (caches as any).default;
           const request = new Request(`https://cache/${cacheKey}`);
           await cache.put(request, response.clone());
         })(),
