@@ -1,4 +1,5 @@
 import type { ContentRecord, CreatePostInput, UpdatePostInput } from "../../types/admin";
+import type { PostMetadata } from "../../types/post";
 
 interface DBContentRow {
   id: string;
@@ -155,4 +156,29 @@ export async function listContent(db: D1Database): Promise<ContentRecord[]> {
   const result = await stmt.all<DBContentRow>();
 
   return result.results.map(rowToRecord);
+}
+
+export async function getContentBySlug(
+  db: D1Database,
+  slug: string,
+): Promise<ContentRecord | null> {
+  const stmt = db.prepare("SELECT * FROM content WHERE slug = ? AND type = 'post'");
+  const row = await stmt.bind(slug).first<DBContentRow>();
+
+  if (!row) {
+    return null;
+  }
+
+  return rowToRecord(row);
+}
+
+export function contentRecordToPostMetadata(record: ContentRecord): PostMetadata {
+  return {
+    title: record.title,
+    description: record.description,
+    date: new Date((record.publishedAt || record.createdAt) * 1000).toISOString().split("T")[0],
+    tags: record.tags,
+    slug: record.slug,
+    published: record.published,
+  };
 }

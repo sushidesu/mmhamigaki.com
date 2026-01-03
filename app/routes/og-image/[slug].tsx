@@ -1,6 +1,6 @@
 import { createRoute } from "honox/factory";
 import type { Context } from "hono";
-import { parseMarkdown } from "../../lib/markdown";
+import { getContentBySlug } from "../../lib/db/content";
 
 function generateOGImageSVG(title: string, description: string): string {
   const titleLines = wrapText(title, 35);
@@ -61,15 +61,13 @@ function escapeXml(text: string): string {
 export default createRoute(async (c: Context<{ Bindings: CloudflareBindings }>) => {
   const slug = c.req.param("slug")!;
 
-  const object = await c.env.CONTENT_BUCKET.get(`posts/${slug}.md`);
-  if (!object) {
+  const post = await getContentBySlug(c.env.DB, slug);
+
+  if (!post) {
     return c.notFound();
   }
 
-  const content = await object.text();
-  const parsed = await parseMarkdown(content);
-  const { title, description } = parsed.metadata;
-
+  const { title, description } = post;
   const svg = generateOGImageSVG(title, description || "");
 
   const response = new Response(svg, {
