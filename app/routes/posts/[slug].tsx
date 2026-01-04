@@ -1,6 +1,7 @@
 import { createRoute } from "honox/factory";
 import type { Context } from "hono";
 import { getContentBySlug, contentRecordToPostMetadata } from "../../lib/db/content";
+import { getContentBody } from "../../types/admin";
 import { parseMarkdown } from "../../lib/markdown";
 import { renderPostPage } from "../../lib/templates";
 
@@ -13,9 +14,8 @@ export default createRoute(async (c: Context<{ Bindings: CloudflareBindings }>) 
     return c.notFound();
   }
 
-  // マークダウン本体を取得
-  const object = await c.env.CONTENT_BUCKET.get(post.storageKey);
-  const markdown = object ? await object.text() : "";
+  // Get markdown from attachments (stored in D1)
+  const markdown = getContentBody(post) || "";
   const { html } = await parseMarkdown(markdown);
 
   const metadata = contentRecordToPostMetadata(post);

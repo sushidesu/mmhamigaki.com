@@ -1,13 +1,13 @@
 import { newHttpBatchRpcSession } from "capnweb";
-import type { CreatePostInput, UpdatePostInput } from "../types/admin";
+import type { CreateContentInput, UpdateContentInput, ContentRecord } from "../types/admin";
 
 // AdminApiServerの型定義（クライアント用）
 interface AdminApi {
-  createPost(data: CreatePostInput): Promise<any>;
-  updatePost(id: string, data: UpdatePostInput): Promise<any>;
-  deletePost(id: string): Promise<void>;
-  listPosts(): Promise<any[]>;
-  getPostById(id: string): Promise<any>;
+  createContent(data: CreateContentInput): Promise<ContentRecord>;
+  updateContent(id: string, data: UpdateContentInput): Promise<ContentRecord>;
+  deleteContent(id: string): Promise<void>;
+  listContents(): Promise<ContentRecord[]>;
+  getContentById(id: string): Promise<ContentRecord>;
 }
 
 export function getAdminApi() {

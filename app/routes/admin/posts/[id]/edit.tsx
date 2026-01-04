@@ -1,24 +1,24 @@
 import { createRoute } from "honox/factory";
 import type { Context } from "hono";
 import { AdminLayout } from "../../../../components/AdminLayout";
-import PostForm from "../../../../islands/PostForm";
+import ContentForm from "../../../../islands/ContentForm";
 import { getContentById } from "../../../../lib/db/content";
+import { getContentBody } from "../../../../types/admin";
 
 export default createRoute(async (c: Context<{ Bindings: CloudflareBindings }>) => {
   const id = c.req.param("id")!;
-  const post = await getContentById(c.env.DB, id);
+  const content = await getContentById(c.env.DB, id);
 
-  if (!post) {
+  if (!content) {
     return c.notFound();
   }
 
-  // Fetch markdown from R2
-  const object = await c.env.CONTENT_BUCKET.get(post.storageKey);
-  const markdown = object ? await object.text() : "";
+  // Get markdown from attachments (stored in D1)
+  const markdown = getContentBody(content) || "";
 
-  const html = `<!DOCTYPE html>${AdminLayout({
-    children: <PostForm post={post} markdown={markdown} />,
-  })}`;
-
-  return c.html(html);
+  return c.render(
+    <AdminLayout>
+      <ContentForm content={content} markdown={markdown} />
+    </AdminLayout>,
+  );
 });

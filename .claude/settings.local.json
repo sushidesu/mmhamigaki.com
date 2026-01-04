@@ -8,7 +8,9 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:www.npmjs.com)",
       "Bash(npm run build:*)",
-      "Bash(npm run cf-typegen:*)"
+      "Bash(npm run cf-typegen:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run format:*)"
     ]
   }
 }

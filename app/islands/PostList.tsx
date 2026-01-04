@@ -16,7 +16,7 @@ export default function PostList({ posts: initialPosts }: PostListProps) {
     setDeletingId(id);
     try {
       const api = getAdminApi();
-      await api.deletePost(id);
+      await api.deleteContent(id);
       setPosts(posts.filter((p) => p.id !== id));
     } catch (error) {
       console.error("Failed to delete post:", error);

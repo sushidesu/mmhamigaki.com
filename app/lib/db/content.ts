@@ -1,9 +1,15 @@
-import type { ContentRecord, CreatePostInput, UpdatePostInput } from "../../types/admin";
+import type {
+  ContentRecord,
+  CreateContentInput,
+  UpdateContentInput,
+  AttachmentRecord,
+  ContentType,
+} from "../../types/admin";
 import type { PostMetadata } from "../../types/post";
+import { createAttachment, getAttachmentsByContentId } from "./attachment";
 
 interface DBContentRow {
   id: string;
-  type: string;
   slug: string;
   title: string;
   description: string;
@@ -12,13 +18,11 @@ interface DBContentRow {
   updated_at: number;
   published_at: number | null;
   tags: string; // JSON string
-  storage_key: string;
 }
 
-function rowToRecord(row: DBContentRow): ContentRecord {
+function rowToRecord(row: DBContentRow, attachments: AttachmentRecord[]): ContentRecord {
   return {
     id: row.id,
-    type: row.type,
     slug: row.slug,
     title: row.title,
     description: row.description,
@@ -27,27 +31,29 @@ function rowToRecord(row: DBContentRow): ContentRecord {
     updatedAt: row.updated_at,
     publishedAt: row.published_at,
     tags: JSON.parse(row.tags),
-    storageKey: row.storage_key,
+    attachments,
   };
 }
 
-export async function createContent(db: D1Database, data: CreatePostInput): Promise<ContentRecord> {
+export async function createContent(
+  db: D1Database,
+  data: CreateContentInput,
+): Promise<ContentRecord> {
   const id = crypto.randomUUID();
   const now = Math.floor(Date.now() / 1000);
   const publishedAt = data.published ? now : null;
-  const storageKey = `posts/${id}.md`;
 
+  // Create content record
   const stmt = db.prepare(`
     INSERT INTO content (
-      id, type, slug, title, description, published,
-      created_at, updated_at, published_at, tags, storage_key
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      id, slug, title, description, published,
+      created_at, updated_at, published_at, tags
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   await stmt
     .bind(
       id,
-      "post",
       data.slug,
       data.title,
       data.description,
@@ -56,13 +62,18 @@ export async function createContent(db: D1Database, data: CreatePostInput): Prom
       now,
       publishedAt,
       JSON.stringify(data.tags),
-      storageKey,
     )
     .run();
 
+  // Create attachments
+  const attachments: AttachmentRecord[] = [];
+  for (const attachmentData of data.attachments) {
+    const attachment = await createAttachment(db, id, attachmentData);
+    attachments.push(attachment);
+  }
+
   return {
     id,
-    type: "post",
     slug: data.slug,
     title: data.title,
     description: data.description,
@@ -71,14 +82,14 @@ export async function createContent(db: D1Database, data: CreatePostInput): Prom
     updatedAt: now,
     publishedAt,
     tags: data.tags,
-    storageKey,
+    attachments,
   };
 }
 
 export async function updateContent(
   db: D1Database,
   id: string,
-  data: UpdatePostInput,
+  data: UpdateContentInput,
 ): Promise<ContentRecord | null> {
   const now = Math.floor(Date.now() / 1000);
 
@@ -144,7 +155,10 @@ export async function getContentById(db: D1Database, id: string): Promise<Conten
     return null;
   }
 
-  return rowToRecord(row);
+  // Get attachments for this content
+  const attachments = await getAttachmentsByContentId(db, id);
+
+  return rowToRecord(row, attachments);
 }
 
 export async function listContent(db: D1Database): Promise<ContentRecord[]> {
@@ -155,21 +169,84 @@ export async function listContent(db: D1Database): Promise<ContentRecord[]> {
 
   const result = await stmt.all<DBContentRow>();
 
-  return result.results.map(rowToRecord);
+  // Get attachments for each content
+  const records = await Promise.all(
+    result.results.map(async (row) => {
+      const attachments = await getAttachmentsByContentId(db, row.id);
+      return rowToRecord(row, attachments);
+    }),
+  );
+
+  return records;
 }
 
 export async function getContentBySlug(
   db: D1Database,
   slug: string,
 ): Promise<ContentRecord | null> {
-  const stmt = db.prepare("SELECT * FROM content WHERE slug = ? AND type = 'post'");
+  const stmt = db.prepare("SELECT * FROM content WHERE slug = ?");
   const row = await stmt.bind(slug).first<DBContentRow>();
 
   if (!row) {
     return null;
   }
 
-  return rowToRecord(row);
+  // Get attachments for this content
+  const attachments = await getAttachmentsByContentId(db, row.id);
+
+  return rowToRecord(row, attachments);
+}
+
+/**
+ * Get contents filtered by type
+ */
+export async function getContentsByType(
+  db: D1Database,
+  type: ContentType,
+): Promise<ContentRecord[]> {
+  // Get content IDs that have the specified type as their first attachment
+  const stmt = db.prepare(`
+    SELECT DISTINCT c.*
+    FROM content c
+    INNER JOIN attachment a ON c.id = a.content_id
+    WHERE a.order_index = 0 AND a.type = ?
+    ORDER BY c.created_at DESC
+  `);
+
+  const result = await stmt.bind(type).all<DBContentRow>();
+
+  // Get attachments for each content
+  const records = await Promise.all(
+    result.results.map(async (row) => {
+      const attachments = await getAttachmentsByContentId(db, row.id);
+      return rowToRecord(row, attachments);
+    }),
+  );
+
+  return records;
+}
+
+/**
+ * Get published contents (for public display)
+ */
+export async function getPublishedContents(db: D1Database): Promise<ContentRecord[]> {
+  const stmt = db.prepare(`
+    SELECT * FROM content
+    WHERE published = 1
+    ORDER BY published_at DESC, created_at DESC
+  `);
+
+  const result = await stmt.all<DBContentRow>();
+
+  // Get attachments for each content
+  const records = await Promise.all(
+    result.results.map(async (row) => {
+      const attachments = await getAttachmentsByContentId(db, row.id);
+      return rowToRecord(row, attachments);
+    }),
+  );
+
+  return records;
 }
 
 export function contentRecordToPostMetadata(record: ContentRecord): PostMetadata {
