@@ -19,6 +19,44 @@ interface UploadResponse {
   size: number;
 }
 
+const TYPE_OPTIONS: Array<{
+  value: ContentType;
+  label: string;
+  description: string;
+  accept: string;
+}> = [
+  {
+    value: "post",
+    label: "Post",
+    description: "テキスト主体の記事。markdown と画像の組み合わせを扱います。",
+    accept: "image/*",
+  },
+  {
+    value: "music",
+    label: "Music",
+    description: "音源とカバービジュアル。音声 + 説明文を追加できます。",
+    accept: "audio/*,image/*",
+  },
+  {
+    value: "illustration",
+    label: "Illustration",
+    description: "イラストや漫画ページなどの静止画。",
+    accept: "image/*",
+  },
+  {
+    value: "video",
+    label: "Video",
+    description: "動画コンテンツ。必要に応じてサムネイルや説明を記載します。",
+    accept: "video/*,image/*",
+  },
+  {
+    value: "live",
+    label: "LIVE",
+    description: "ライブ配信アーカイブや告知。",
+    accept: "video/*,image/*",
+  },
+];
+
 export default function AttachmentUploader({
   initialAttachments = [],
   onChange,
@@ -29,6 +67,7 @@ export default function AttachmentUploader({
       id: `att-${idx}`,
     })),
   );
+  const [selectedType, setSelectedType] = useState<ContentType>("post");
 
   const updateAttachments = (newAttachments: AttachmentItem[]) => {
     // Update order indices
@@ -157,74 +196,52 @@ export default function AttachmentUploader({
     input.value = ""; // Reset input
   };
 
-  const getAcceptTypes = (type: ContentType): string => {
-    switch (type) {
-      case "post":
-      case "illustration":
-        return "image/*";
-      case "music":
-        return "image/*,audio/*";
-      case "video":
-      case "live":
-        return "video/*,image/*";
-      default:
-        return "*/*";
-    }
-  };
+  const selectedTypeInfo =
+    TYPE_OPTIONS.find((opt) => opt.value === selectedType) ?? TYPE_OPTIONS[0];
 
   return (
     <div class="space-y-4">
-      <div class="flex items-center justify-between">
-        <label class="block text-sm font-medium text-gray-700">
-          Attachments
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-700">Content type</p>
+            <p class="text-xs text-gray-500">1つ目のアタッチメントがページのタイプを決定します。</p>
+          </div>
           {attachments.length > 0 && (
-            <span class="ml-2 text-xs text-gray-500">
-              (Content type: {attachments[0]?.type || "none"})
+            <span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
+              Current: {attachments[0].type}
             </span>
           )}
-        </label>
-        <div class="flex gap-2">
-          <select id="attachment-type" class="text-sm rounded-md border-gray-300">
-            <option value="post">Post</option>
-            <option value="music">Music</option>
-            <option value="illustration">Illustration</option>
-            <option value="video">Video</option>
-            <option value="live">LIVE</option>
-          </select>
-          <button
-            type="button"
-            onClick={() => {
-              const select = document.getElementById("attachment-type");
-              if (select instanceof HTMLSelectElement) {
-                const type = select.value as ContentType;
-                addTextAttachment(type);
-              }
-            }}
-            class="text-sm bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700"
-          >
-            + Text
-          </button>
-          <label class="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 cursor-pointer">
-            + Media
-            <input
-              type="file"
-              class="hidden"
-              onChange={(e) => {
-                const select = document.getElementById("attachment-type");
-                if (select instanceof HTMLSelectElement) {
-                  const type = select.value as ContentType;
-                  handleFileChange(e, type);
-                }
-              }}
-              accept={getAcceptTypes("post")}
-            />
-          </label>
         </div>
+        <div class="flex flex-wrap gap-2">
+          {TYPE_OPTIONS.map((opt) => (
+            <button
+              type="button"
+              key={opt.value}
+              onClick={() => setSelectedType(opt.value)}
+              class={`px-3 py-1 rounded border text-sm ${
+                selectedType === opt.value
+                  ? "bg-gray-900 text-white border-gray-900"
+                  : "bg-white text-gray-700 border-gray-300 hover:border-gray-500"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        <p class="text-xs text-gray-500">{selectedTypeInfo.description}</p>
+        <button
+          type="button"
+          onClick={() => addTextAttachment(selectedType)}
+          class="text-sm bg-gray-900 text-white px-4 py-2 rounded hover:bg-gray-800"
+        >
+          選択中のタイプでアタッチメントを追加
+        </button>
       </div>
 
       {attachments.length === 0 && (
         <div class="text-sm text-gray-500 italic p-4 border border-dashed rounded">
-          No attachments yet. Add text or media attachments above.
+          アタッチメントがまだありません。上のボタンから追加してください。
         </div>
       )}
 
@@ -234,14 +251,31 @@ export default function AttachmentUploader({
           class={`border rounded-lg p-4 ${attachment.uploading ? "bg-yellow-50 border-yellow-300" : "bg-gray-50"}`}
         >
           <div class="flex items-start justify-between">
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2">
-                <span class="text-xs font-medium text-gray-600">
-                  #{index} - {attachment.type}
-                </span>
+            <div class="flex-1 space-y-3">
+              <div class="flex items-center flex-wrap gap-2">
+                <select
+                  class="text-xs rounded border-gray-300"
+                  value={attachment.type}
+                  onChange={(e) => {
+                    const target = e.target as HTMLSelectElement;
+                    const newAttachments = [...attachments];
+                    newAttachments[index] = {
+                      ...newAttachments[index],
+                      type: target.value as ContentType,
+                    };
+                    updateAttachments(newAttachments);
+                  }}
+                >
+                  {TYPE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <span class="text-xs text-gray-500">#{index}</span>
                 {index === 0 && (
                   <span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
-                    Determines content type
+                    Content type source
                   </span>
                 )}
                 {attachment.uploading && (
@@ -251,9 +285,40 @@ export default function AttachmentUploader({
                 )}
               </div>
 
-              {attachment.body !== undefined && attachment.body !== null ? (
+              <div class="space-y-2">
+                <label class="text-xs font-medium text-gray-600">Media</label>
+                <div class="flex items-center gap-3">
+                  {attachment.previewUrl && (
+                    <img
+                      src={attachment.previewUrl}
+                      alt="Preview"
+                      class="w-20 h-20 object-cover rounded border"
+                    />
+                  )}
+                  <div class="flex-1 text-sm space-y-1">
+                    <div class="font-medium break-all">
+                      {attachment.storageKey || "未アップロード"}
+                    </div>
+                    <div class="text-gray-500">{attachment.metadata?.mimeType || "--"}</div>
+                  </div>
+                  <label class="text-xs bg-blue-600 text-white px-3 py-1 rounded cursor-pointer hover:bg-blue-700">
+                    アップロード
+                    <input
+                      type="file"
+                      class="hidden"
+                      onChange={(e) => handleFileChange(e, attachment.type)}
+                      accept={TYPE_OPTIONS.find((t) => t.value === attachment.type)?.accept}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">
+                  Body / Description (optional)
+                </label>
                 <textarea
-                  value={attachment.body}
+                  value={attachment.body ?? ""}
                   onInput={(e) => {
                     const newAttachments = [...attachments];
                     newAttachments[index] = {
@@ -263,24 +328,10 @@ export default function AttachmentUploader({
                     updateAttachments(newAttachments);
                   }}
                   rows={4}
-                  placeholder="Markdown content..."
+                  placeholder="Markdown body, captions, lyrics, etc."
                   class="w-full rounded border-gray-300 font-mono text-sm"
                 />
-              ) : (
-                <div class="flex items-center gap-2">
-                  {attachment.previewUrl && (
-                    <img
-                      src={attachment.previewUrl}
-                      alt="Preview"
-                      class="w-20 h-20 object-cover rounded"
-                    />
-                  )}
-                  <div class="text-sm">
-                    <div class="font-medium">{attachment.storageKey}</div>
-                    <div class="text-gray-500">{attachment.metadata?.mimeType}</div>
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
 
             <div class="flex flex-col gap-1 ml-4">

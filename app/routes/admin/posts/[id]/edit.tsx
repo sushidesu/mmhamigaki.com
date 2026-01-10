@@ -3,7 +3,6 @@ import type { Context } from "hono";
 import { AdminLayout } from "../../../../components/AdminLayout";
 import ContentForm from "../../../../islands/ContentForm";
 import { getContentById } from "../../../../lib/db/content";
-import { getContentBody } from "../../../../types/admin";
 
 export default createRoute(async (c: Context<{ Bindings: CloudflareBindings }>) => {
   const id = c.req.param("id")!;
@@ -13,12 +12,9 @@ export default createRoute(async (c: Context<{ Bindings: CloudflareBindings }>) 
     return c.notFound();
   }
 
-  // Get markdown from attachments (stored in D1)
-  const markdown = getContentBody(content) || "";
-
   return c.render(
     <AdminLayout>
-      <ContentForm content={content} markdown={markdown} />
+      <ContentForm content={content} />
     </AdminLayout>,
   );
 });

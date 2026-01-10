@@ -1,34 +1,24 @@
 import { useState } from "hono/jsx";
 import type { ContentRecord, CreateAttachmentInput } from "../types/admin";
 import { getAdminApi } from "../lib/admin-client";
-import { getContentBody } from "../types/admin";
 import AttachmentUploader from "./AttachmentUploader";
 
 interface ContentFormProps {
   content?: ContentRecord;
-  markdown?: string;
 }
 
-export default function ContentForm({ content, markdown }: ContentFormProps) {
+export default function ContentForm({ content }: ContentFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [attachments, setAttachments] = useState<CreateAttachmentInput[]>(
-    content?.attachments.map((att) => ({
-      type: att.type,
-      storageKey: att.storageKey ?? undefined,
-      body: att.body ?? undefined,
-      metadata: att.metadata,
-      orderIndex: att.orderIndex,
-    })) ||
-      (markdown
-        ? [
-            {
-              type: "post",
-              body: markdown,
-              metadata: { mimeType: "text/markdown" },
-              orderIndex: 0,
-            },
-          ]
-        : []),
+    content
+      ? content.attachments.map((att) => ({
+          type: att.type,
+          storageKey: att.storageKey ?? undefined,
+          body: att.body ?? undefined,
+          metadata: att.metadata,
+          orderIndex: att.orderIndex,
+        }))
+      : [],
   );
   const isEdit = !!content;
 
@@ -47,26 +37,17 @@ export default function ContentForm({ content, markdown }: ContentFormProps) {
       .map((t) => t.trim())
       .filter(Boolean);
     const published = formData.get("published") === "on";
-    const markdownText = formData.get("markdown") as string;
-
-    // Create attachments array
-    let finalAttachments = [...attachments];
-
-    // If there's markdown text but no attachments, create a text attachment
-    if (markdownText && finalAttachments.length === 0) {
-      finalAttachments = [
-        {
-          type: "post",
-          body: markdownText,
-          metadata: { mimeType: "text/markdown" },
-          orderIndex: 0,
-        },
-      ];
-    }
+    const finalAttachments = attachments.map((att, index) => ({
+      type: att.type,
+      storageKey: att.storageKey,
+      body: att.body,
+      metadata: att.metadata,
+      orderIndex: att.orderIndex ?? index,
+    }));
 
     // Validate attachments
     if (finalAttachments.length === 0) {
-      alert("Please add at least one attachment or write some content");
+      alert("Please add at least one attachment");
       setIsSubmitting(false);
       return;
     }
@@ -83,7 +64,7 @@ export default function ContentForm({ content, markdown }: ContentFormProps) {
           published,
         });
       } else {
-        // For create, use attachments from state or converted markdown
+        // For create, use attachments defined via the builder
         await api.createContent({
           title,
           slug,
@@ -161,32 +142,15 @@ export default function ContentForm({ content, markdown }: ContentFormProps) {
           />
         </div>
 
-        <div>
-          <label for="markdown" class="block text-sm font-medium text-gray-700">
-            Markdown Content (Simple Mode)
-          </label>
-          <textarea
-            name="markdown"
-            id="markdown"
-            rows={20}
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm font-mono text-sm"
-            placeholder="Write your markdown content here..."
-          >
-            {content ? getContentBody(content) || "" : ""}
-          </textarea>
-          <p class="mt-1 text-sm text-gray-500">
-            Or use Advanced Mode below to add multiple attachments (images, audio, etc.)
-          </p>
-        </div>
-
-        <details class="border rounded-lg p-4">
-          <summary class="cursor-pointer font-medium text-gray-700">
-            Advanced Mode - Multiple Attachments
-          </summary>
-          <div class="mt-4">
-            <AttachmentUploader initialAttachments={attachments} onChange={setAttachments} />
+        <div class="border rounded-lg p-4 space-y-4">
+          <div>
+            <h3 class="text-sm font-medium text-gray-700">Attachments</h3>
+            <p class="text-sm text-gray-500">
+              1つ目のアタッチメントがコンテンツタイプを決定します。テキストやメディアを必要なだけ追加してください。
+            </p>
           </div>
-        </details>
+          <AttachmentUploader initialAttachments={attachments} onChange={setAttachments} />
+        </div>
 
         <div class="flex items-center">
           <input
