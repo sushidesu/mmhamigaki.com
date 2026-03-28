@@ -1,21 +1,42 @@
-```txt
-npm install
-npm run dev
+## Development
+
+```bash
+pnpm dev
 ```
 
-```txt
-npm run deploy
+Apply D1 migrations (first time only):
+
+```bash
+pnpm wrangler d1 migrations apply mmhamigaki-db --local
 ```
 
-[For generating/synchronizing types based on your Worker configuration run](https://developers.cloudflare.com/workers/wrangler/commands/#types):
+## Cloudflare Types
 
-```txt
-npm run cf-typegen
+Run after changing `wrangler.jsonc`:
+
+```bash
+pnpm run cf-typegen
 ```
 
-Pass the `CloudflareBindings` as generics when instantiation `Hono`:
+## Quality
 
-```ts
-// src/index.ts
-const app = new Hono<{ Bindings: CloudflareBindings }>();
+```bash
+pnpm run typecheck
+pnpm run fmt
 ```
+
+## Deploy
+
+Apply migrations if any:
+
+```bash
+pnpm wrangler d1 migrations apply mmhamigaki-db --remote
+```
+
+```bash
+pnpm run deploy
+```
+
+## Cloudflare Access
+
+`/admin` is protected by Cloudflare Access. In local development, it is accessible without authentication.
